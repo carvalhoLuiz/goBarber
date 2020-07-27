@@ -1,6 +1,5 @@
 import Sequelize, { Model } from 'sequelize';
 
-// eslint-disable-next-line no-unused-vars
 class User extends Model {
   static init(sequelize) {
     super.init(
