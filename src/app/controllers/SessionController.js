@@ -1,3 +1,4 @@
+import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
 
 import User from '../models/user';
@@ -5,6 +6,17 @@ import authConfig from '../../config/auth';
 
 class SessionController {
   async store(req, res) {
+    const schema = Yup.object().shape({
+      email: Yup.string().email(),
+      password: Yup.string().required(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res
+        .status(400)
+        .json({ error: 'campos preenchidos de forma errada' });
+    }
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ where: { email } });
