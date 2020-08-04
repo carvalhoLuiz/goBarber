@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { startOfHour, parseISO, isBefore } from 'date-fns';
 import User from '../models/User';
 import Appointment from '../models/Appointment';
 
@@ -25,10 +26,38 @@ class AppointmentController {
         .json({ error: 'Só é possível fazer apontamentos com funcionarios' });
     }
 
+    /**
+     * Checando se a data não foi passada
+     */
+
+    const hourStart = startOfHour(parseISO(date));
+
+    if (isBefore(hourStart, new Date())) {
+      return res
+        .status(400)
+        .json({ error: 'Data inserida inválida tente outra' });
+    }
+
+    /**
+     * Checando se já tem hora marcada
+     */
+
+    const checkAvailability = await Appointment.findOne({
+      where: {
+        provider_id,
+        canceled_at: null,
+        date: hourStart,
+      },
+    });
+
+    if (checkAvailability) {
+      return res.status(400).json({ error: 'Data já preenchida' });
+    }
+
     const appointment = await Appointment.create({
       user_id: req.userId,
       provider_id,
-      date,
+      date: hourStart,
     });
 
     return res.json(appointment);
